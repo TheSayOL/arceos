@@ -179,3 +179,6 @@ mod allocator_api {
 
 #[cfg(feature = "allocator_api")]
 pub use allocator_api::AllocatorRc;
+
+mod early;
+pub use early::EarlyAllocator;
