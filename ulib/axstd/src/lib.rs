@@ -50,7 +50,6 @@
 #![feature(doc_cfg)]
 #![feature(doc_auto_cfg)]
 #![feature(ip_in_core)]
-
 #![feature(hashmap_internals)]
 
 #[cfg(feature = "alloc")]
@@ -59,6 +58,9 @@ extern crate alloc;
 #[cfg(feature = "alloc")]
 #[doc(no_inline)]
 pub use alloc::{boxed, collections, format, string, vec};
+
+#[cfg(feature = "alloc")]
+pub mod hash_map;
 
 #[doc(no_inline)]
 pub use core::{arch, cell, cmp, hint, marker, mem, ops, ptr, slice, str};
@@ -73,7 +75,6 @@ pub mod process;
 pub mod sync;
 pub mod thread;
 pub mod time;
-pub mod hash_map;
 
 #[cfg(feature = "fs")]
 pub mod fs;
