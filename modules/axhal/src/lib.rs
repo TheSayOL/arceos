@@ -79,3 +79,6 @@ pub use self::platform::platform_init;
 
 #[cfg(feature = "smp")]
 pub use self::platform::platform_init_secondary;
+
+mod fake_rand;
+pub use fake_rand::random;

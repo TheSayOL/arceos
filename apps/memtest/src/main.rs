@@ -38,6 +38,27 @@ fn test_btree_map(rng: &mut impl RngCore) {
     println!("test_btree_map() OK!");
 }
 
+
+use std::hash_map::HashMap;
+fn test_hash_map(rng: &mut impl RngCore) {
+    const N: usize = 50_000;
+    let mut m = HashMap::new();
+    for _ in 0..N {
+        let value = rng.next_u32();
+        let key = format!("key_{value}");
+        m.insert(key, value);
+    }
+    for (k, v) in m.iter() {
+        if let Some(k) = k.strip_prefix("key_") {
+            assert_eq!(k.parse::<u32>().unwrap(), *v);
+        }
+    }
+    println!("test_hash_map() OK!");
+}
+
+
+
+
 #[cfg_attr(feature = "axstd", no_mangle)]
 fn main() {
     println!("Running memory tests...");
@@ -45,6 +66,7 @@ fn main() {
     let mut rng = SmallRng::seed_from_u64(0xdead_beef);
     test_vec(&mut rng);
     test_btree_map(&mut rng);
+    test_hash_map(&mut rng);
 
     println!("Memory tests run OK!");
 }

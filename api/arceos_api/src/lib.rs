@@ -338,3 +338,8 @@ pub mod io {
         pub type AxPollState;
     }
 }
+
+/// generate u128 randomly.
+pub fn random() -> u128 {
+    imp::random()
+}
