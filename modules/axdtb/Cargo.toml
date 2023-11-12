@@ -1,0 +1,11 @@
+[package]
+name = "axdtb"
+version = "0.1.0"
+edition = "2021"
+description = "dtb library of ArceOS"
+
+[features]
+default = []
+
+[dependencies]
+dtb = "0.2.0"

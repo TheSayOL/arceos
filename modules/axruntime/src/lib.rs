@@ -140,6 +140,22 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
     #[cfg(feature = "alloc")]
     init_allocator();
 
+    // Parse fdt for early memory info
+    let dtb_info = match parse_dtb(dtb.into()) {
+        Ok(info) => info,
+        Err(err) => panic!("Bad dtb {:?}", err),
+    };
+    info!("DTB info: ==================================");
+    info!(
+        "Memory: {:#x}, size: {:#x}",
+        dtb_info.memory_addr, dtb_info.memory_size
+    );
+    info!("Virtio_mmio[{}]:", dtb_info.mmio_regions.len());
+    for r in dtb_info.mmio_regions {
+        info!("\t{:#x}, size: {:#x}", r.0, r.1);
+    }
+    info!("============================================");
+
     #[cfg(feature = "paging")]
     {
         info!("Initialize kernel page table...");
@@ -191,7 +207,11 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
 
     {
         let ga = axalloc::global_allocator();
-        info!("Used pages {} / Used bytes {}", ga.used_pages(), ga.used_bytes());
+        info!(
+            "Used pages {} / Used bytes {}",
+            ga.used_pages(),
+            ga.used_bytes()
+        );
     }
 
     unsafe { main() };
@@ -297,4 +317,28 @@ fn init_tls() {
     let main_tls = axhal::tls::TlsArea::alloc();
     unsafe { axhal::arch::write_thread_pointer(main_tls.tls_ptr() as usize) };
     core::mem::forget(main_tls);
+}
+
+
+extern crate alloc;
+extern crate axdtb;
+use alloc::vec::Vec;
+// use axdtb::util::SliceRead;
+use core::str;
+// 参考类型定义
+struct DtbInfo {
+    memory_addr: usize,
+    memory_size: usize,
+    mmio_regions: Vec<(usize, usize)>,
+}
+
+// 参考函数原型
+fn parse_dtb(dtb_pa: usize) -> Result<DtbInfo, i32> {
+    // 这里就是对axdtb组件的调用，传入dtb指针，解析后输出结果。这个函数和axdtb留给大家实现
+    let dtb = axdtb::util::DeviceTree::new(dtb_pa);
+    let (memory_addr, memory_size) = dtb.memory_addr_size();
+    let mmio_regions = dtb.mmio_regions();
+    Ok(
+        DtbInfo { memory_addr, memory_size, mmio_regions }
+    )
 }

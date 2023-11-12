@@ -1,0 +1,557 @@
+virt.dtb: found fdt at offset 0
+/dts-v1/;
+// magic:		0xd00dfeed
+// totalsize:		0xf02 (3842)
+// off_dt_struct:	0x38
+// off_dt_strings:	0xd98
+// off_mem_rsvmap:	0x28
+// version:		17
+// last_comp_version:	16
+// boot_cpuid_phys:	0x0
+// size_dt_strings:	0x16a
+// size_dt_struct:	0xd60
+
+// 0038: tag: 0x00000001 (FDT_BEGIN_NODE)
+/ {
+// 0040: tag: 0x00000003 (FDT_PROP)
+// 0db5: string: #address-cells
+// 004c: value
+    #address-cells = <0x00000002>;
+// 0050: tag: 0x00000003 (FDT_PROP)
+// 0da9: string: #size-cells
+// 005c: value
+    #size-cells = <0x00000002>;
+// 0060: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 006c: value
+    compatible = "riscv-virtio";
+// 007c: tag: 0x00000003 (FDT_PROP)
+// 0d98: string: model
+// 0088: value
+    model = "riscv-virtio,qemu";
+// 009c: tag: 0x00000001 (FDT_BEGIN_NODE)
+    fw-cfg@10100000 {
+// 00b0: tag: 0x00000003 (FDT_PROP)
+// 0e90: string: dma-coherent
+// 00bc: value
+        dma-coherent;
+// 00bc: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 00c8: value
+        reg = <0x00000000 0x10100000 0x00000000 0x00000018>;
+// 00d8: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 00e4: value
+        compatible = "qemu,fw-cfg-mmio";
+// 00f8: tag: 0x00000002 (FDT_END_NODE)
+    };
+// 00fc: tag: 0x00000001 (FDT_BEGIN_NODE)
+    flash@20000000 {
+// 0110: tag: 0x00000003 (FDT_PROP)
+// 0eee: string: bank-width
+// 011c: value
+        bank-width = <0x00000004>;
+// 0120: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 012c: value
+        reg = <0x00000000 0x20000000 0x00000000 0x02000000 0x00000000 0x22000000 0x00000000 0x02000000>;
+// 014c: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 0158: value
+        compatible = "cfi-flash";
+// 0164: tag: 0x00000002 (FDT_END_NODE)
+    };
+// 0168: tag: 0x00000001 (FDT_BEGIN_NODE)
+    chosen {
+// 0174: tag: 0x00000003 (FDT_PROP)
+// 0ef9: string: bootargs
+// 0180: value
+        bootargs = [00];
+// 0184: tag: 0x00000003 (FDT_PROP)
+// 0ee2: string: stdout-path
+// 0190: value
+        stdout-path = "/soc/uart@10000000";
+// 01a4: tag: 0x00000002 (FDT_END_NODE)
+    };
+// 01a8: tag: 0x00000001 (FDT_BEGIN_NODE)
+    memory@80000000 {
+// 01bc: tag: 0x00000003 (FDT_PROP)
+// 0dfc: string: device_type
+// 01c8: value
+        device_type = "memory";
+// 01d0: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 01dc: value
+        reg = <0x00000000 0x80000000 0x00000000 0x08000000>;
+// 01ec: tag: 0x00000002 (FDT_END_NODE)
+    };
+// 01f0: tag: 0x00000001 (FDT_BEGIN_NODE)
+    cpus {
+// 01fc: tag: 0x00000003 (FDT_PROP)
+// 0db5: string: #address-cells
+// 0208: value
+        #address-cells = <0x00000001>;
+// 020c: tag: 0x00000003 (FDT_PROP)
+// 0da9: string: #size-cells
+// 0218: value
+        #size-cells = <0x00000000>;
+// 021c: tag: 0x00000003 (FDT_PROP)
+// 0dcb: string: timebase-frequency
+// 0228: value
+        timebase-frequency = <0x00989680>;
+// 022c: tag: 0x00000001 (FDT_BEGIN_NODE)
+        cpu@0 {
+// 0238: tag: 0x00000003 (FDT_PROP)
+// 0e08: string: phandle
+// 0244: value
+            phandle = <0x00000001>;
+// 0248: tag: 0x00000003 (FDT_PROP)
+// 0dfc: string: device_type
+// 0254: value
+            device_type = "cpu";
+// 0258: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 0264: value
+            reg = <0x00000000>;
+// 0268: tag: 0x00000003 (FDT_PROP)
+// 0df1: string: status
+// 0274: value
+            status = "okay";
+// 027c: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 0288: value
+            compatible = "riscv";
+// 0290: tag: 0x00000003 (FDT_PROP)
+// 0de7: string: riscv,isa
+// 029c: value
+            riscv,isa = "rv64imafdcsu";
+// 02ac: tag: 0x00000003 (FDT_PROP)
+// 0dde: string: mmu-type
+// 02b8: value
+            mmu-type = "riscv,sv48";
+// 02c4: tag: 0x00000001 (FDT_BEGIN_NODE)
+            interrupt-controller {
+// 02e0: tag: 0x00000003 (FDT_PROP)
+// 0e25: string: #interrupt-cells
+// 02ec: value
+                #interrupt-cells = <0x00000001>;
+// 02f0: tag: 0x00000003 (FDT_PROP)
+// 0e10: string: interrupt-controller
+// 02fc: value
+                interrupt-controller;
+// 02fc: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 0308: value
+                compatible = "riscv,cpu-intc";
+// 0318: tag: 0x00000003 (FDT_PROP)
+// 0e08: string: phandle
+// 0324: value
+                phandle = <0x00000002>;
+// 0328: tag: 0x00000002 (FDT_END_NODE)
+            };
+// 032c: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 0330: tag: 0x00000001 (FDT_BEGIN_NODE)
+        cpu-map {
+// 033c: tag: 0x00000001 (FDT_BEGIN_NODE)
+            cluster0 {
+// 034c: tag: 0x00000001 (FDT_BEGIN_NODE)
+                core0 {
+// 0358: tag: 0x00000003 (FDT_PROP)
+// 0e36: string: cpu
+// 0364: value
+                    cpu = <0x00000001>;
+// 0368: tag: 0x00000002 (FDT_END_NODE)
+                };
+// 036c: tag: 0x00000002 (FDT_END_NODE)
+            };
+// 0370: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 0374: tag: 0x00000002 (FDT_END_NODE)
+    };
+// 0378: tag: 0x00000001 (FDT_BEGIN_NODE)
+    soc {
+// 0380: tag: 0x00000003 (FDT_PROP)
+// 0db5: string: #address-cells
+// 038c: value
+        #address-cells = <0x00000002>;
+// 0390: tag: 0x00000003 (FDT_PROP)
+// 0da9: string: #size-cells
+// 039c: value
+        #size-cells = <0x00000002>;
+// 03a0: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 03ac: value
+        compatible = "simple-bus";
+// 03b8: tag: 0x00000003 (FDT_PROP)
+// 0dc4: string: ranges
+// 03c4: value
+        ranges;
+// 03c4: tag: 0x00000001 (FDT_BEGIN_NODE)
+        rtc@101000 {
+// 03d4: tag: 0x00000003 (FDT_PROP)
+// 0e6a: string: interrupts
+// 03e0: value
+            interrupts = <0x0000000b>;
+// 03e4: tag: 0x00000003 (FDT_PROP)
+// 0e59: string: interrupt-parent
+// 03f0: value
+            interrupt-parent = <0x00000003>;
+// 03f4: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 0400: value
+            reg = <0x00000000 0x00101000 0x00000000 0x00001000>;
+// 0410: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 041c: value
+            compatible = "google,goldfish-rtc";
+// 0430: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 0434: tag: 0x00000001 (FDT_BEGIN_NODE)
+        uart@10000000 {
+// 0448: tag: 0x00000003 (FDT_PROP)
+// 0e6a: string: interrupts
+// 0454: value
+            interrupts = <0x0000000a>;
+// 0458: tag: 0x00000003 (FDT_PROP)
+// 0e59: string: interrupt-parent
+// 0464: value
+            interrupt-parent = <0x00000003>;
+// 0468: tag: 0x00000003 (FDT_PROP)
+// 0ed2: string: clock-frequency
+// 0474: value
+            clock-frequency = <0x00384000>;
+// 0478: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 0484: value
+            reg = <0x00000000 0x10000000 0x00000000 0x00000100>;
+// 0494: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 04a0: value
+            compatible = "ns16550a";
+// 04ac: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 04b0: tag: 0x00000001 (FDT_BEGIN_NODE)
+        poweroff {
+// 04c0: tag: 0x00000003 (FDT_PROP)
+// 0ecc: string: value
+// 04cc: value
+            value = <0x00005555>;
+// 04d0: tag: 0x00000003 (FDT_PROP)
+// 0ec5: string: offset
+// 04dc: value
+            offset = <0x00000000>;
+// 04e0: tag: 0x00000003 (FDT_PROP)
+// 0ebe: string: regmap
+// 04ec: value
+            regmap = <0x00000004>;
+// 04f0: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 04fc: value
+            compatible = "syscon-poweroff";
+// 050c: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 0510: tag: 0x00000001 (FDT_BEGIN_NODE)
+        reboot {
+// 051c: tag: 0x00000003 (FDT_PROP)
+// 0ecc: string: value
+// 0528: value
+            value = <0x00007777>;
+// 052c: tag: 0x00000003 (FDT_PROP)
+// 0ec5: string: offset
+// 0538: value
+            offset = <0x00000000>;
+// 053c: tag: 0x00000003 (FDT_PROP)
+// 0ebe: string: regmap
+// 0548: value
+            regmap = <0x00000004>;
+// 054c: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 0558: value
+            compatible = "syscon-reboot";
+// 0568: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 056c: tag: 0x00000001 (FDT_BEGIN_NODE)
+        test@100000 {
+// 057c: tag: 0x00000003 (FDT_PROP)
+// 0e08: string: phandle
+// 0588: value
+            phandle = <0x00000004>;
+// 058c: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 0598: value
+            reg = <0x00000000 0x00100000 0x00000000 0x00001000>;
+// 05a8: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 05b4: value
+            compatible = "sifive,test1", "sifive,test0", "syscon";
+// 05d8: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 05dc: tag: 0x00000001 (FDT_BEGIN_NODE)
+        pci@30000000 {
+// 05f0: tag: 0x00000003 (FDT_PROP)
+// 0eab: string: interrupt-map-mask
+// 05fc: value
+            interrupt-map-mask = <0x00001800 0x00000000 0x00000000 0x00000007>;
+// 060c: tag: 0x00000003 (FDT_PROP)
+// 0e9d: string: interrupt-map
+// 0618: value
+            interrupt-map = <0x00000000 0x00000000 0x00000000 0x00000001 0x00000003 0x00000020 0x00000000 0x00000000 0x00000000 0x00000002 0x00000003 0x00000021 0x00000000 0x00000000 0x00000000 0x00000003 0x00000003 0x00000022 0x00000000 0x00000000 0x00000000 0x00000004 0x00000003 0x00000023 0x00000800 0x00000000 0x00000000 0x00000001 0x00000003 0x00000021 0x00000800 0x00000000 0x00000000 0x00000002 0x00000003 0x00000022 0x00000800 0x00000000 0x00000000 0x00000003 0x00000003 0x00000023 0x00000800 0x00000000 0x00000000 0x00000004 0x00000003 0x00000020 0x00001000 0x00000000 0x00000000 0x00000001 0x00000003 0x00000022 0x00001000 0x00000000 0x00000000 0x00000002 0x00000003 0x00000023 0x00001000 0x00000000 0x00000000 0x00000003 0x00000003 0x00000020 0x00001000 0x00000000 0x00000000 0x00000004 0x00000003 0x00000021 0x00001800 0x00000000 0x00000000 0x00000001 0x00000003 0x00000023 0x00001800 0x00000000 0x00000000 0x00000002 0x00000003 0x00000020 0x00001800 0x00000000 0x00000000 0x00000003 0x00000003 0x00000021 0x00001800 0x00000000 0x00000000 0x00000004 0x00000003 0x00000022>;
+// 0798: tag: 0x00000003 (FDT_PROP)
+// 0dc4: string: ranges
+// 07a4: value
+            ranges = <0x01000000 0x00000000 0x00000000 0x00000000 0x03000000 0x00000000 0x00010000 0x02000000 0x00000000 0x40000000 0x00000000 0x40000000 0x00000000 0x40000000 0x03000000 0x00000004 0x00000000 0x00000004 0x00000000 0x00000004 0x00000000>;
+// 07f8: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 0804: value
+            reg = <0x00000000 0x30000000 0x00000000 0x10000000>;
+// 0814: tag: 0x00000003 (FDT_PROP)
+// 0e90: string: dma-coherent
+// 0820: value
+            dma-coherent;
+// 0820: tag: 0x00000003 (FDT_PROP)
+// 0e86: string: bus-range
+// 082c: value
+            bus-range = <0x00000000 0x000000ff>;
+// 0834: tag: 0x00000003 (FDT_PROP)
+// 0e75: string: linux,pci-domain
+// 0840: value
+            linux,pci-domain = <0x00000000>;
+// 0844: tag: 0x00000003 (FDT_PROP)
+// 0dfc: string: device_type
+// 0850: value
+            device_type = "pci";
+// 0854: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 0860: value
+            compatible = "pci-host-ecam-generic";
+// 0878: tag: 0x00000003 (FDT_PROP)
+// 0da9: string: #size-cells
+// 0884: value
+            #size-cells = <0x00000002>;
+// 0888: tag: 0x00000003 (FDT_PROP)
+// 0e25: string: #interrupt-cells
+// 0894: value
+            #interrupt-cells = <0x00000001>;
+// 0898: tag: 0x00000003 (FDT_PROP)
+// 0db5: string: #address-cells
+// 08a4: value
+            #address-cells = <0x00000003>;
+// 08a8: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 08ac: tag: 0x00000001 (FDT_BEGIN_NODE)
+        virtio_mmio@10008000 {
+// 08c8: tag: 0x00000003 (FDT_PROP)
+// 0e6a: string: interrupts
+// 08d4: value
+            interrupts = <0x00000008>;
+// 08d8: tag: 0x00000003 (FDT_PROP)
+// 0e59: string: interrupt-parent
+// 08e4: value
+            interrupt-parent = <0x00000003>;
+// 08e8: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 08f4: value
+            reg = <0x00000000 0x10008000 0x00000000 0x00001000>;
+// 0904: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 0910: value
+            compatible = "virtio,mmio";
+// 091c: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 0920: tag: 0x00000001 (FDT_BEGIN_NODE)
+        virtio_mmio@10007000 {
+// 093c: tag: 0x00000003 (FDT_PROP)
+// 0e6a: string: interrupts
+// 0948: value
+            interrupts = <0x00000007>;
+// 094c: tag: 0x00000003 (FDT_PROP)
+// 0e59: string: interrupt-parent
+// 0958: value
+            interrupt-parent = <0x00000003>;
+// 095c: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 0968: value
+            reg = <0x00000000 0x10007000 0x00000000 0x00001000>;
+// 0978: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 0984: value
+            compatible = "virtio,mmio";
+// 0990: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 0994: tag: 0x00000001 (FDT_BEGIN_NODE)
+        virtio_mmio@10006000 {
+// 09b0: tag: 0x00000003 (FDT_PROP)
+// 0e6a: string: interrupts
+// 09bc: value
+            interrupts = <0x00000006>;
+// 09c0: tag: 0x00000003 (FDT_PROP)
+// 0e59: string: interrupt-parent
+// 09cc: value
+            interrupt-parent = <0x00000003>;
+// 09d0: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 09dc: value
+            reg = <0x00000000 0x10006000 0x00000000 0x00001000>;
+// 09ec: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 09f8: value
+            compatible = "virtio,mmio";
+// 0a04: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 0a08: tag: 0x00000001 (FDT_BEGIN_NODE)
+        virtio_mmio@10005000 {
+// 0a24: tag: 0x00000003 (FDT_PROP)
+// 0e6a: string: interrupts
+// 0a30: value
+            interrupts = <0x00000005>;
+// 0a34: tag: 0x00000003 (FDT_PROP)
+// 0e59: string: interrupt-parent
+// 0a40: value
+            interrupt-parent = <0x00000003>;
+// 0a44: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 0a50: value
+            reg = <0x00000000 0x10005000 0x00000000 0x00001000>;
+// 0a60: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 0a6c: value
+            compatible = "virtio,mmio";
+// 0a78: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 0a7c: tag: 0x00000001 (FDT_BEGIN_NODE)
+        virtio_mmio@10004000 {
+// 0a98: tag: 0x00000003 (FDT_PROP)
+// 0e6a: string: interrupts
+// 0aa4: value
+            interrupts = <0x00000004>;
+// 0aa8: tag: 0x00000003 (FDT_PROP)
+// 0e59: string: interrupt-parent
+// 0ab4: value
+            interrupt-parent = <0x00000003>;
+// 0ab8: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 0ac4: value
+            reg = <0x00000000 0x10004000 0x00000000 0x00001000>;
+// 0ad4: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 0ae0: value
+            compatible = "virtio,mmio";
+// 0aec: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 0af0: tag: 0x00000001 (FDT_BEGIN_NODE)
+        virtio_mmio@10003000 {
+// 0b0c: tag: 0x00000003 (FDT_PROP)
+// 0e6a: string: interrupts
+// 0b18: value
+            interrupts = <0x00000003>;
+// 0b1c: tag: 0x00000003 (FDT_PROP)
+// 0e59: string: interrupt-parent
+// 0b28: value
+            interrupt-parent = <0x00000003>;
+// 0b2c: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 0b38: value
+            reg = <0x00000000 0x10003000 0x00000000 0x00001000>;
+// 0b48: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 0b54: value
+            compatible = "virtio,mmio";
+// 0b60: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 0b64: tag: 0x00000001 (FDT_BEGIN_NODE)
+        virtio_mmio@10002000 {
+// 0b80: tag: 0x00000003 (FDT_PROP)
+// 0e6a: string: interrupts
+// 0b8c: value
+            interrupts = <0x00000002>;
+// 0b90: tag: 0x00000003 (FDT_PROP)
+// 0e59: string: interrupt-parent
+// 0b9c: value
+            interrupt-parent = <0x00000003>;
+// 0ba0: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 0bac: value
+            reg = <0x00000000 0x10002000 0x00000000 0x00001000>;
+// 0bbc: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 0bc8: value
+            compatible = "virtio,mmio";
+// 0bd4: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 0bd8: tag: 0x00000001 (FDT_BEGIN_NODE)
+        virtio_mmio@10001000 {
+// 0bf4: tag: 0x00000003 (FDT_PROP)
+// 0e6a: string: interrupts
+// 0c00: value
+            interrupts = <0x00000001>;
+// 0c04: tag: 0x00000003 (FDT_PROP)
+// 0e59: string: interrupt-parent
+// 0c10: value
+            interrupt-parent = <0x00000003>;
+// 0c14: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 0c20: value
+            reg = <0x00000000 0x10001000 0x00000000 0x00001000>;
+// 0c30: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 0c3c: value
+            compatible = "virtio,mmio";
+// 0c48: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 0c4c: tag: 0x00000001 (FDT_BEGIN_NODE)
+        plic@c000000 {
+// 0c60: tag: 0x00000003 (FDT_PROP)
+// 0e08: string: phandle
+// 0c6c: value
+            phandle = <0x00000003>;
+// 0c70: tag: 0x00000003 (FDT_PROP)
+// 0e4e: string: riscv,ndev
+// 0c7c: value
+            riscv,ndev = <0x00000035>;
+// 0c80: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 0c8c: value
+            reg = <0x00000000 0x0c000000 0x00000000 0x00210000>;
+// 0c9c: tag: 0x00000003 (FDT_PROP)
+// 0e3a: string: interrupts-extended
+// 0ca8: value
+            interrupts-extended = <0x00000002 0x0000000b 0x00000002 0x00000009>;
+// 0cb8: tag: 0x00000003 (FDT_PROP)
+// 0e10: string: interrupt-controller
+// 0cc4: value
+            interrupt-controller;
+// 0cc4: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 0cd0: value
+            compatible = "sifive,plic-1.0.0", "riscv,plic0";
+// 0cf0: tag: 0x00000003 (FDT_PROP)
+// 0e25: string: #interrupt-cells
+// 0cfc: value
+            #interrupt-cells = <0x00000001>;
+// 0d00: tag: 0x00000003 (FDT_PROP)
+// 0db5: string: #address-cells
+// 0d0c: value
+            #address-cells = <0x00000000>;
+// 0d10: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 0d14: tag: 0x00000001 (FDT_BEGIN_NODE)
+        clint@2000000 {
+// 0d28: tag: 0x00000003 (FDT_PROP)
+// 0e3a: string: interrupts-extended
+// 0d34: value
+            interrupts-extended = <0x00000002 0x00000003 0x00000002 0x00000007>;
+// 0d44: tag: 0x00000003 (FDT_PROP)
+// 0df8: string: reg
+// 0d50: value
+            reg = <0x00000000 0x02000000 0x00000000 0x00010000>;
+// 0d60: tag: 0x00000003 (FDT_PROP)
+// 0d9e: string: compatible
+// 0d6c: value
+            compatible = "sifive,clint0", "riscv,clint0";
+// 0d88: tag: 0x00000002 (FDT_END_NODE)
+        };
+// 0d8c: tag: 0x00000002 (FDT_END_NODE)
+    };
+// 0d90: tag: 0x00000002 (FDT_END_NODE)
+};
