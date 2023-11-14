@@ -21,19 +21,14 @@ impl<'a> DeviceTree<'a> {
         for item in items {
             if item.is_begin_node() && item.node_name().unwrap() == "memory" {
                 found = true;
-            }
-            if item.is_property() && found && item.name().unwrap() == "reg" {
-                let len = item.value().unwrap().len() / 4;
-                for i in 0..len {
-                    let mut slice = [0u8; 4];
-                    slice.copy_from_slice(&item.value().unwrap()[i * 4..(i + 1) * 4]);
-                    if i == 1 {
-                        addr = u32::from_be_bytes(slice);
-                    }
-                    if i == 3 {
-                        size = u32::from_be_bytes(slice);
-                    }
-                }
+            } else if item.is_property() && found && item.name().unwrap() == "reg" {
+                let mut slice = [0u8; 4];
+                // memory addr
+                slice.copy_from_slice(&item.value().unwrap()[4..8]);
+                addr = u32::from_be_bytes(slice);
+                // size
+                slice.copy_from_slice(&item.value().unwrap()[12..16]);
+                size = u32::from_be_bytes(slice);
                 break;
             }
         }
@@ -46,26 +41,18 @@ impl<'a> DeviceTree<'a> {
         let mut found = false;
         for item in items {
             if item.is_begin_node() {
-                if item.node_name().unwrap() == "virtio_mmio" {
-                    found = true;
-                } else {
-                    found = false;
-                }
-            }
-            if item.is_property() && found && item.name().unwrap() == "reg" {
-                let mut addr = 0;
-                let mut size = 0;
-                let len = item.value().unwrap().len() / 4;
-                for i in 0..len {
-                    let mut slice = [0u8; 4];
-                    slice.copy_from_slice(&item.value().unwrap()[i * 4..(i + 1) * 4]);
-                    if i == 1 {
-                        addr = u32::from_be_bytes(slice);
-                    }
-                    if i == 3 {
-                        size = u32::from_be_bytes(slice);
-                    }
-                }
+                found = match item.node_name().unwrap() {
+                    "virtio_mmio" => true,
+                    _ => false,
+                };
+            } else if item.is_property() && found && item.name().unwrap() == "reg" {
+                let mut slice = [0u8; 4];
+                // addr
+                slice.copy_from_slice(&item.value().unwrap()[4..8]);
+                let addr = u32::from_be_bytes(slice);
+                // size
+                slice.copy_from_slice(&item.value().unwrap()[12..16]);
+                let size = u32::from_be_bytes(slice);
                 v.push((addr as usize, size as usize));
             }
         }

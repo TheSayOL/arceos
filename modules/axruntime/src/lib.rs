@@ -22,6 +22,11 @@
 #[macro_use]
 extern crate axlog;
 
+extern crate alloc;
+extern crate axdtb;
+use alloc::vec::Vec;
+use core::str;
+
 #[cfg(all(target_os = "none", not(test)))]
 mod lang_items;
 mod trap;
@@ -319,26 +324,19 @@ fn init_tls() {
     core::mem::forget(main_tls);
 }
 
-
-extern crate alloc;
-extern crate axdtb;
-use alloc::vec::Vec;
-// use axdtb::util::SliceRead;
-use core::str;
-// 参考类型定义
 struct DtbInfo {
     memory_addr: usize,
     memory_size: usize,
     mmio_regions: Vec<(usize, usize)>,
 }
 
-// 参考函数原型
 fn parse_dtb(dtb_pa: usize) -> Result<DtbInfo, i32> {
-    // 这里就是对axdtb组件的调用，传入dtb指针，解析后输出结果。这个函数和axdtb留给大家实现
     let dtb = axdtb::util::DeviceTree::new(dtb_pa);
     let (memory_addr, memory_size) = dtb.memory_addr_size();
     let mmio_regions = dtb.mmio_regions();
-    Ok(
-        DtbInfo { memory_addr, memory_size, mmio_regions }
-    )
+    Ok(DtbInfo {
+        memory_addr,
+        memory_size,
+        mmio_regions,
+    })
 }

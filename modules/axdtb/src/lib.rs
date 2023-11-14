@@ -4,7 +4,6 @@
 //! initialization work before entering the application's `main` function.
 
 #![cfg_attr(not(test), no_std)]
-#![feature(doc_auto_cfg)]
 
 pub mod util;
 extern crate dtb;
