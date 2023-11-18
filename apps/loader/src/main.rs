@@ -15,23 +15,23 @@ struct Header {
 #[cfg_attr(feature = "axstd", no_mangle)]
 fn main() {
     let mut apps_start = PLASH_START;
+    println!("Load payload ...");
     loop {
         let header = unsafe { &*(apps_start as *const Header) };
         if header.magic != "UniKernl".as_bytes() {
-            println!("no more apps.");
+            // println!("no more apps.");
             break;
         }
-        println!("found app in addr: {:x}", apps_start);
+        println!("app start = 0x{:x}", apps_start);
         let data_start = apps_start + header.app_off as usize;
         let data_size = header.app_size as usize;
         let data = unsafe {
             core::slice::from_raw_parts(data_start as *const u8, data_size)
         };
 
-        println!("Load payload ...");
-        println!("app data = {:x?}", data);
-        println!("Load payload ok!");
+        println!("content = {:x?}", data);
 
         apps_start = data_start + data_size;
     }
+    println!("Load payload ok!");
 }
