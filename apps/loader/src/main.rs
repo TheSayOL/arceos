@@ -7,23 +7,31 @@ use axstd::println;
 const PLASH_START: usize = 0x22000000;
 
 struct Header {
-    magic: [u8;8],
+    magic: [u8; 8],
     app_off: u64,
     app_size: u64,
 }
 
 #[cfg_attr(feature = "axstd", no_mangle)]
 fn main() {
-    let apps_start = PLASH_START as *const u8;
+    let mut apps_start = PLASH_START;
+    loop {
+        let header = unsafe { &*(apps_start as *const Header) };
+        if header.magic != "UniKernl".as_bytes() {
+            println!("no more apps.");
+            break;
+        }
+        println!("found app in addr: {:x}", apps_start);
+        let data_start = apps_start + header.app_off as usize;
+        let data_size = header.app_size as usize;
+        let data = unsafe {
+            core::slice::from_raw_parts(data_start as *const u8, data_size)
+        };
 
-    let header = unsafe { &*(apps_start as *const Header) };
-    assert_eq!(header.magic, "UniKernl".as_bytes());
+        println!("Load payload ...");
+        println!("app data = {:x?}", data);
+        println!("Load payload ok!");
 
-    let apps_size = header.app_size as usize;
-    let apps_start = unsafe {apps_start.add(header.app_off as usize)} ; 
-    println!("Load payload ...");
-    let code = unsafe { core::slice::from_raw_parts(apps_start, apps_size) };
-    println!("code = {:x?}", code);
-    println!("Load payload ok!");
+        apps_start = data_start + data_size;
+    }
 }
-
