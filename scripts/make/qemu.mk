@@ -66,6 +66,9 @@ else
   qemu_args-$(ACCEL) += -cpu host -accel kvm
 endif
 
+qemu_args-y += -drive if=pflash,file=$(CURDIR)/payload/apps.bin,format=raw,unit=1
+qemu_args-debug += -drive if=pflash,file=$(CURDIR)/payload/apps.bin,format=raw,unit=1
+
 define run_qemu
   @printf "    $(CYAN_C)Running$(END_C) on qemu...\n"
   $(call run_cmd,$(QEMU),$(qemu_args-y))
