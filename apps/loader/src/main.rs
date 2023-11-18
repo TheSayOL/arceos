@@ -89,14 +89,14 @@ fn main() {
     let mut apps_start = PLASH_START;
     println!("Load payload ...");
     loop {
-        let magic = unsafe { core::slice::from_raw_parts(apps_start as *const u8, 8)   };
+        let magic = unsafe { core::slice::from_raw_parts(apps_start as *const u8, 8) };
         // println!("magic = {:x?}", core::str::from_utf8(magic).unwrap());
         if magic != "UniKernl".as_bytes() {
             break;
         }
-        let app_off = unsafe {core::slice::from_raw_parts((apps_start+8) as *const u8,8)};
+        let app_off = unsafe { core::slice::from_raw_parts((apps_start + 8) as *const u8, 8) };
         let app_off = unsafe { u64::from_le_bytes(app_off.try_into().unwrap()) };
-        let app_size = unsafe {core::slice::from_raw_parts((apps_start+16) as *const u8,8)};
+        let app_size = unsafe { core::slice::from_raw_parts((apps_start + 16) as *const u8, 8) };
         let app_size = unsafe { u64::from_le_bytes(app_size.try_into().unwrap()) };
         let data_start = apps_start + app_off as usize;
         let data_size = app_size as usize;
@@ -105,9 +105,6 @@ fn main() {
 
         let run_code = unsafe { core::slice::from_raw_parts_mut(RUN_START as *mut u8, data_size) };
 
-        // clean  
-        run_code.fill(0);
-        
         run_code.copy_from_slice(data);
         // println!(
         //     "data_start, data_sizse = 0x{:x}, 0x{:x}",
@@ -127,6 +124,9 @@ fn main() {
                 abi_table = sym ABI_TABLE,
             )
         };
+
+        // clean
+        run_code.fill(0);
     }
     println!("Load payload ok!");
 }
