@@ -38,13 +38,13 @@ fn main() {
         let data_size = header.app_size as usize;
         let data = unsafe { core::slice::from_raw_parts(data_start as *const u8, data_size) };
 
-        println!("content = {:x?}", data);
+        // println!("content = {:x?}", data);
 
         apps_start = data_start + data_size;
 
         let run_code = unsafe { core::slice::from_raw_parts_mut(RUN_START as *mut u8, data_size) };
         run_code.copy_from_slice(data);
-        println!("run code {:x?}; address [{:x?}], executing...", run_code, run_code.as_ptr());
+        // println!("run code {:x?}; address [{:x?}], executing...", run_code, run_code.as_ptr());
         execute_app();
     }
     println!("Load payload ok!");
@@ -54,25 +54,14 @@ fn main() {
 fn execute_app() {
     let arg0: u8 = b'A';
     // execute app
-    unsafe {
-        core::arch::asm!("
-        li      t0, {abi_num}
-        slli    t0, t0, 3
-        la      t1, {abi_table}
-        add     t1, t1, t0
-        ld      t1, (t1)
-        jalr    t1
+    unsafe { core::arch::asm!("
+        la      a7, {abi_table}
         li      t2, {run_start}
         jalr    t2
-        ",
+        j       .",
         run_start = const RUN_START,
         abi_table = sym ABI_TABLE,
-        //abi_num = const SYS_HELLO,
-        // abi_num = const SYS_PUTCHAR,
-        abi_num = const SYS_TERMINATE,
-        in("a0") arg0,
-        )
-    }
+    )}
 }
 
 
@@ -94,7 +83,7 @@ fn abi_putchar(c: char) {
     println!("[ABI:Print] {c}");
 }
 
-fn abi_terminate(c: char) {
+fn abi_terminate() {
     println!("[ABI:Terminate] exit...");
     ax_exit(0);
 }
