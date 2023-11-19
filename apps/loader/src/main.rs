@@ -44,23 +44,35 @@ const RUN_START: usize = 0x4010_0000;
 #[link_section = ".data.app_page_table"]
 static mut APP_PT_SV39: [u64; 512] = [0; 512];
 
+#[link_section = ".data.app_page_table"]
+static mut APP2_PT_SV39: [u64; 512] = [0; 512];
+
 unsafe fn init_app_page_table() {
     // 0x8000_0000..0xc000_0000, VRWX_GAD, 1G block
     APP_PT_SV39[2] = (0x80000 << 10) | 0xef;
+    APP2_PT_SV39[2] = (0x80000 << 10) | 0xef;
     // 0xffff_ffc0_8000_0000..0xffff_ffc0_c000_0000, VRWX_GAD, 1G block
     APP_PT_SV39[0x102] = (0x80000 << 10) | 0xef;
+    APP2_PT_SV39[0x102] = (0x80000 << 10) | 0xef;
 
     // 0x0000_0000..0x4000_0000, VRWX_GAD, 1G block
     APP_PT_SV39[0] = (0x00000 << 10) | 0xef;
+    APP2_PT_SV39[0] = (0x00000 << 10) | 0xef;
 
     // For App aspace!
     // 0x4000_0000..0x8000_0000, VRWX_GAD, 1G block
     APP_PT_SV39[1] = (0x80000 << 10) | 0xef;
+    APP2_PT_SV39[1] = (0x80000 << 10) | 0xef;
 }
 
-unsafe fn switch_app_aspace() {
+unsafe fn switch_app_aspace(i: usize) {
     use riscv::register::satp;
-    let page_table_root = APP_PT_SV39.as_ptr() as usize - axconfig::PHYS_VIRT_OFFSET;
+    let mut page_table_root = APP2_PT_SV39.as_ptr() as usize - axconfig::PHYS_VIRT_OFFSET;
+    if i == 2 {
+        page_table_root = APP2_PT_SV39.as_ptr() as usize - axconfig::PHYS_VIRT_OFFSET;
+    } else {
+        page_table_root = APP_PT_SV39.as_ptr() as usize - axconfig::PHYS_VIRT_OFFSET;
+    }
     satp::set(satp::Mode::Sv39, 0, page_table_root >> 12);
     riscv::asm::sfence_vma_all();
 }
@@ -78,9 +90,6 @@ fn main() {
     unsafe {
         init_app_page_table();
     }
-    unsafe {
-        switch_app_aspace();
-    }
 
     register_abi(SYS_HELLO, abi_hello as usize);
     register_abi(SYS_PUTCHAR, abi_putchar as usize);
@@ -88,7 +97,9 @@ fn main() {
 
     let mut apps_start = PLASH_START;
     println!("Load payload ...");
-    loop {
+    let mut i = 0;
+    while i < 2 {
+        i += 1;
         let magic = unsafe { core::slice::from_raw_parts(apps_start as *const u8, 8) };
         // println!("magic = {:x?}", core::str::from_utf8(magic).unwrap());
         if magic != "UniKernl".as_bytes() {
@@ -102,6 +113,10 @@ fn main() {
         let data_size = app_size as usize;
         let data = unsafe { core::slice::from_raw_parts(data_start as *const u8, data_size) };
         // println!("data = {:?}", data);
+
+        unsafe {
+            switch_app_aspace(i);
+        }
 
         let run_code = unsafe { core::slice::from_raw_parts_mut(RUN_START as *mut u8, data_size) };
 
@@ -126,7 +141,7 @@ fn main() {
         };
 
         // clean
-        run_code.fill(0);
+        // run_code.fill(0);
     }
     println!("Load payload ok!");
 }
