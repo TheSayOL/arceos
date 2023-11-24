@@ -35,7 +35,7 @@ V ?=
 
 # App options
 # A ?= apps/helloworld
-A ?= apps/loader
+A ?= apps/test_loader
 APP ?= $(A)
 FEATURES ?=
 APP_FEATURES ?=

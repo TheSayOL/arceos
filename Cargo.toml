@@ -72,6 +72,7 @@ members = [
     "apps/task/tls",
 
     "apps/loader",
+    "apps/test_loader",
 ]
 
 [profile.release]
