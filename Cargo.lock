@@ -132,6 +132,7 @@ dependencies = [
 name = "arceos-musl-loader"
 version = "0.1.0"
 dependencies = [
+ "axalloc",
  "axconfig",
  "axstd",
  "riscv",

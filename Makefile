@@ -213,3 +213,9 @@ clean_c::
 	rm -rf $(app-objs)
 
 .PHONY: all build disasm run justrun debug clippy fmt fmt_c test test_no_fail_fast clean clean_c doc disk_image
+
+
+KILLER = $(shell ps | grep qemu | awk '{print $$1}')
+kill_qe:
+	echo $(KILLER)
+	kill $(KILLER)
