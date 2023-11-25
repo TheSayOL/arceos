@@ -4,6 +4,7 @@ use axstd::{println, process::exit};
 use super::config::*;
 use super::header::Header;
 use super::page::{init_app_page_table, switch_app_aspace};
+use super::mylibc;
 
 extern crate xmas_elf;
 
@@ -57,16 +58,22 @@ fn from_elf(elf_data: &[u8]) -> usize {
             Ok(".rela.plt") => {
                 let mut rela = section.offset() as usize;
                 let rela_end = section.size() as usize + rela;
+                let sec = elf.find_section_by_name(".dynsym").unwrap();
+                let dynsym = sec.offset() as usize as *const u32;
                 while rela < rela_end {
                     let p = rela as *const u32;
                     let addr = unsafe { *p };
                     let dynsym_index = unsafe { *(p.add(3)) as usize };
-                    let sec = elf.find_section_by_name(".dynsym").unwrap();
-                    let dynsym = sec.offset() as usize as *const u32;
                     unsafe {
                         match elf.get_dyn_string(*(dynsym.add(dynsym_index * 24 / 4))) {
                             Ok("__libc_start_main") => {
                                 *(addr as usize as *mut usize) = __libc_main_start as usize
+                            }
+                            Ok("puts") => {
+                                *(addr as usize as *mut usize) = mylibc::puts as usize
+                            }
+                            Ok(name) => {
+                                println!("name = {}", name);
                             }
                             _ => {}
                         }
@@ -101,7 +108,7 @@ impl Runner {
 static mut RUNNER: Runner = Runner { count: 0 };
 
 /// start running apps from PLASH
-pub fn start_apps(){
+pub fn start_apps() {
     run_next();
 }
 

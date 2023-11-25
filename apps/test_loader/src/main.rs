@@ -5,11 +5,10 @@
 mod config;
 mod dl;
 mod header;
+mod mylibc;
 mod page;
-
-use dl::start_apps;
 
 #[cfg_attr(feature = "axstd", no_mangle)]
 fn main() {
-    start_apps();
+    dl::start_apps();
 }
