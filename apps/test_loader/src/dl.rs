@@ -3,8 +3,8 @@ use axstd::{println, process::exit};
 
 use super::config::*;
 use super::header::Header;
-use super::page::{init_app_page_table, switch_app_aspace};
 use super::mylibc;
+use super::page::{init_app_page_table, switch_app_aspace};
 
 extern crate xmas_elf;
 
@@ -24,7 +24,10 @@ fn from_elf(elf_data: &[u8]) -> usize {
             let start_va = ph.virtual_addr() as usize;
             let ph_flags = ph.flags();
             let data = unsafe {
-                core::slice::from_raw_parts_mut(start_va as *mut u8, ph.mem_size() as usize)
+                core::slice::from_raw_parts_mut(
+                    (APP_START_VA + start_va) as *mut u8,
+                    ph.mem_size() as usize,
+                )
             };
             data.fill(0);
             let mut index = 0;
@@ -33,7 +36,7 @@ fn from_elf(elf_data: &[u8]) -> usize {
                 index += 1;
             }
             if ph_flags.is_execute() {
-                entry = elf.header.pt2.entry_point() as usize;
+                entry = elf.header.pt2.entry_point() as usize + APP_START_VA;
             }
         }
     }
@@ -42,38 +45,38 @@ fn from_elf(elf_data: &[u8]) -> usize {
     for section in elf.section_iter() {
         match section.get_name(&elf) {
             Ok(".rela.dyn") => {
-                let mut rela = section.offset() as usize;
+                let mut rela = section.address() as usize + APP_START_VA;
                 let rela_end = section.size() as usize + rela;
                 while rela < rela_end {
                     let p = rela as *const u32;
                     unsafe {
-                        let addr = *p as usize;
+                        let addr = *p as usize + APP_START_VA;
                         let value = *(p.add(4)) as usize;
-                        *(addr as *mut usize) = value as usize + OFFSET;
+                        *(addr as *mut usize) = value + APP_START_VA;
                     }
                     // size of one entry = 24B in `.rela.dyn`
                     rela += 24;
                 }
             }
             Ok(".rela.plt") => {
-                let mut rela = section.offset() as usize;
+                let mut rela = section.address() as usize + APP_START_VA;
                 let rela_end = section.size() as usize + rela;
                 let sec = elf.find_section_by_name(".dynsym").unwrap();
-                let dynsym = sec.offset() as usize as *const u32;
+                let dynsym = (sec.address() as usize + APP_START_VA) as *const u32;
                 while rela < rela_end {
                     let p = rela as *const u32;
-                    let addr = unsafe { *p };
+                    let addr = unsafe { *p } as usize + APP_START_VA;
                     let dynsym_index = unsafe { *(p.add(3)) as usize };
                     unsafe {
                         match elf.get_dyn_string(*(dynsym.add(dynsym_index * 24 / 4))) {
                             Ok("__libc_start_main") => {
-                                *(addr as usize as *mut usize) = __libc_main_start as usize
+                                *(addr as usize as *mut usize) = __libc_main_start as usize;
                             }
                             Ok("puts") => {
-                                *(addr as usize as *mut usize) = mylibc::puts as usize
+                                *(addr as usize as *mut usize) = mylibc::puts as usize;
                             }
                             Ok(name) => {
-                                println!("name = {}", name);
+                                println!("unmatched name = {}", name);
                             }
                             _ => {}
                         }
@@ -88,8 +91,9 @@ fn from_elf(elf_data: &[u8]) -> usize {
 }
 
 fn __libc_main_start(c_main: fn() -> i32) {
+    println!("__libc_main_start: c_main = 0x{:x}", c_main as usize);
     let ret = c_main();
-    println!("c_main return = {}", ret);
+    println!("__libc_main_start: c_main return = {}", ret);
     run_next();
 }
 
@@ -109,11 +113,11 @@ static mut RUNNER: Runner = Runner { count: 0 };
 
 /// start running apps from PLASH
 pub fn start_apps() {
+    init_app_page_table();
     run_next();
 }
 
 fn run_next() {
-    init_app_page_table();
     switch_app_aspace();
     let i = unsafe { RUNNER.count() };
 

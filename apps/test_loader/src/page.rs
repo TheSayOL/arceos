@@ -1,6 +1,8 @@
 use super::config::*;
-#[cfg(feature = "axstd")]
 use axstd::println;
+
+use arceos_api::mem::ax_alloc;
+use axstd::vec::Vec;
 
 // App aspace
 #[link_section = ".data.app_page_table"]
@@ -10,7 +12,24 @@ static mut APP_PT2_SV39: [u64; 512] = [0; 512];
 #[link_section = ".data.app_page_table"]
 static mut APP_PT3_SV39: [u64; 512] = [0; 512];
 
+
+
+fn get_one_page() -> usize {
+    ax_alloc(core::alloc::Layout::from_size_align(PAGE_SIZE, PAGE_SIZE).unwrap()).unwrap().addr().get()
+}
+
+fn get_pages(num: usize) -> Vec<usize> {
+    let mut v = Vec::new();
+    (0..num).for_each(|_| v.push(get_one_page()));
+    v
+}
+
+
 pub fn init_app_page_table() {
+    
+    let v = get_pages(10);
+    println!("v = {:x?}", v);
+    
     unsafe {
         // 0x0000_0000..0x4000_0000, VRWX_GAD, 1G block
         APP_PT_SV39[0] = (get_ppn(APP_PT2_SV39.as_ptr() as usize) << 10) | 0x01;
