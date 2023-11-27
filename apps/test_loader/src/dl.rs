@@ -1,19 +1,20 @@
+//! two parts:
+//! - read elf file: inspired by rCore
+//! - relocate .got
+//!
+//! FIXME: too many raw pointers
 
-
-use axstd::vec::Vec;
-use axstd::println;
+use axstd::{println, vec::Vec};
 
 use super::config::*;
-use super::header::Header;
 use super::mylibc;
-use super::page::{init_app_page_table, switch_app_aspace};
 
 extern crate xmas_elf;
 
-struct Segment {
-    start_va: usize,
-    len: usize,
-    data: Vec<u8>,
+pub struct Segment {
+    pub start_va: usize,
+    pub len: usize,
+    pub data: Vec<u8>,
 }
 
 impl Segment {
@@ -41,17 +42,8 @@ impl ElfData {
     pub fn entry(&self) -> usize {
         self.entry
     }
-    pub fn map_data(&self) {
-        for s in self.data.iter() {
-            let va = s.start_va;
-            let len = s.len;
-            println!("va {:x}, len {:x}", va, len);
-            let mut va = va as *mut u8;
-            unsafe {
-                let va = core::slice::from_raw_parts_mut(va, len);
-                va.copy_from_slice(&s.data);
-            }
-        }
+    pub fn data(&self) -> &Vec<Segment> {
+        &self.data
     }
     fn set_entry(&mut self, entry: usize) {
         self.entry = entry + APP_START_VA;
@@ -72,7 +64,7 @@ impl ElfData {
     fn read<T>(&self, vaddr: usize) -> *const T {
         let vaddr = vaddr + APP_START_VA;
         for s in self.data.iter() {
-            println!("sva {:x}, va {:X}", s.start_va, vaddr);
+            // println!("sva {:x}, va {:X}", s.start_va, vaddr);
             if s.start_va <= vaddr && vaddr <= s.start_va + s.len {
                 let p = &s.data[vaddr - s.start_va];
                 let p = p as *const _ as *const T;
@@ -118,13 +110,13 @@ pub fn from_elf(elf_data: &[u8]) -> ElfData {
                 // rela's entry is 24B = 6 * 4B, and entry[0] is offset, entry[4] is value
                 while rela_addr < rela_end {
                     unsafe {
-                        println!("rela {:x}", rela_addr);
+                        // println!("rela {:x}", rela_addr);
                         let addr = ret_data.read::<usize>(rela_addr);
                         let value = ret_data.read::<u32>(rela_addr + 4 * 4);
-                        println!("before v {:x}, a {:x}", *value, *addr);
+                        // println!("before v {:x}, a {:x}", *value, *addr);
                         ret_data.write::<usize>(*addr, *value as usize + APP_START_VA);
                         let value = ret_data.read::<usize>(*addr);
-                        println!("after v {:x}, a {:x}", *value, *addr);
+                        // println!("after v {:x}, a {:x}", *value, *addr);
                     }
                     rela_addr += 24;
                 }
@@ -142,16 +134,17 @@ pub fn from_elf(elf_data: &[u8]) -> ElfData {
                         let name_index = *ret_data.read::<u32>(dynsym_addr + dynsym_index * 24);
                         match elf.get_dyn_string(name_index) {
                             Ok("__libc_start_main") => {
-                                println!("libc");
-                                ret_data.write::<usize>(addr, crate::task::__libc_main_start as usize);
+                                // println!("libc");
+                                ret_data
+                                    .write::<usize>(addr, crate::task::__libc_main_start as usize);
                                 let v = *ret_data.read::<usize>(addr);
-                                println!("v {:x}, a {:x}", v, addr);
+                                // println!("v {:x}, a {:x}", v, addr);
                             }
                             Ok("puts") => {
                                 ret_data.write::<usize>(addr, mylibc::puts as usize);
                             }
                             Ok(name) => {
-                                println!("unmatched name = {}", name);
+                                // println!("unmatched name = {}", name);
                             }
                             _ => {}
                         }

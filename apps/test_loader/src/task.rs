@@ -1,13 +1,25 @@
-use axstd::vec::Vec;
-use crate::header::Header;
-#[cfg(feature = "axstd")]
-use axstd::{println, process::exit};
 use super::config::*;
 use super::page::{init_app_page_table, switch_app_aspace};
+use crate::header::Header;
+use crate::mem;
+use axstd::vec::Vec;
+#[cfg(feature = "axstd")]
+use axstd::{println, process::exit};
 
 struct TaskBlock {
     root_page_table: usize,
     pid: usize,
+    sp: usize,
+}
+
+impl TaskBlock {
+    fn new(root_page_table: usize, pid: usize, sp: usize) -> Self {
+        Self {
+            root_page_table,
+            pid,
+            sp: 0,
+        }
+    }
 }
 
 struct TaskManager {
@@ -25,73 +37,81 @@ impl TaskManager {
     fn add_task(&mut self, root_page_table: usize) -> usize {
         let pid = self.current_pid;
         self.current_pid += 1;
-        self.queue.push(TaskBlock {
-            root_page_table,
-            pid,
-        });
+        self.queue.push(TaskBlock::new(root_page_table, pid, 0));
         pid
     }
 }
 
 static mut TASK_MANAGER: TaskManager = TaskManager::new();
 
-pub fn add_task(root_page_table: usize) -> usize {
-    unsafe { TASK_MANAGER.add_task(root_page_table) }
+pub fn add_task() -> usize {
+    1
 }
 
-
-
-
 pub fn __libc_main_start(c_main: fn() -> i32) {
+
+    unsafe {
+        core::arch::asm!("
+        nop
+        nop
+        nop");
+    }
+
     println!("__libc_main_start: c_main = 0x{:x}", c_main as usize);
     let ret = c_main();
     println!("__libc_main_start: c_main return = {}", ret);
     run_next();
 }
 
-struct Runner {
-    count: usize,
-}
-
-impl Runner {
-    fn count(&mut self) -> usize {
-        let ret = self.count;
-        self.count += 1;
-        ret
-    }
-}
-
-static mut RUNNER: Runner = Runner { count: 0 };
-
 /// start running apps from PLASH
 pub fn start_apps() {
     init_app_page_table();
+    switch_app_aspace();
     run_next();
 }
 
 fn run_next() {
-    switch_app_aspace();
-    let i = unsafe { RUNNER.count() };
-
-    let app_start = (PLASH_START + i) as *const u8;
-    // my header: magic(UniKernl), appoff, appsize, all u64. just consider it as inode, to get len of ELF file
-    let header = unsafe { (app_start as *const Header).as_ref().unwrap() };
-
-    // check magic
-    if header.magic != "UniKernl".as_bytes() {
-        return;
+    static mut xx:i32 = 0;
+    unsafe {
+        if xx == 2 {
+            exit(1);
+        } else {
+            xx += 1;
+        }
     }
-    let app_off = header.app_off;
-    let app_size = header.app_size;
 
+    let mut raw_datas = Vec::new();
+    println!("...  {:?}", "UniKnernl".as_bytes());
+
+    let mut app_start = PLASH_START;
+    loop {
+        let header = unsafe { (app_start as *const Header).as_ref().unwrap() };
+        // check magic
+        if header.magic != "UniKernl".as_bytes() {
+            break;
+        }
+        let app_off = header.app_off;
+        let app_size = header.app_size;
+        println!("off {:X}, size {:X}", app_off, app_size);
+
+        let data = app_start + app_off as usize;
+        let data = unsafe { core::slice::from_raw_parts(data as *const u8, app_size as usize) };
+        raw_datas.push(data);
+        app_start += (app_off + app_size) as usize;
+    }
     // read elf
-    let data = unsafe { app_start.add(app_off as usize) };
-    let data = unsafe { core::slice::from_raw_parts(data, app_size as usize) };
-    let data = super::dl::from_elf(data);
-
-    // write data
+    let data = {
+        let data = raw_datas[0];
+        let data = super::dl::from_elf(data);
+        data
+    };
     let entry = data.entry();
-    data.map_data();
+    // write data
+
+    println!("data");
+    for s in data.data() {
+        mem::map_data(&s.data, s.start_va, s.len);
+    }
 
     // init stack
     let sp = STACK_TOP;
