@@ -1,3 +1,4 @@
+/// consider it as an inode, to get len of ELF file
 #[repr(C)]
 #[derive(Debug)]
 pub struct Header {

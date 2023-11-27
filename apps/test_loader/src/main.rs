@@ -16,5 +16,5 @@ mod task;
 // 下一步, 支持多 app
 #[cfg_attr(feature = "axstd", no_mangle)]
 fn main() {
-    dl::start_apps();
+    task::start_apps();
 }
