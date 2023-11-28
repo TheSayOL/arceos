@@ -177,6 +177,9 @@ impl AxRunQueue {
         }
 
         unsafe {
+            // switch page table to next 
+            next_task.inner().set_root_pagetable();
+
             let prev_ctx_ptr = prev_task.ctx_mut_ptr();
             let next_ctx_ptr = next_task.ctx_mut_ptr();
 
@@ -220,6 +223,9 @@ pub(crate) fn init() {
 
     let main_task = TaskInner::new_init("main".into());
     main_task.set_state(TaskState::Running);
+
+    // switch page table to main task
+    main_task.set_root_pagetable();
 
     RUN_QUEUE.init_by(AxRunQueue::new());
     unsafe { CurrentTask::init_current(main_task) }

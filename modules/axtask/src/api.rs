@@ -164,3 +164,20 @@ pub fn run_idle() -> ! {
         axhal::arch::wait_for_irqs();
     }
 }
+
+static mut ALL_TASKS: Vec<Arc<AxTask>> = Vec::new();
+
+use alloc::vec::Vec;
+pub fn new_from_data(datas: Vec<(usize, Vec<u8>)>, entry: usize) {
+    let t = TaskInner::new_from_data(entry, "name".into(), 4096, datas);
+    RUN_QUEUE.lock().add_task(t.clone());
+    unsafe { ALL_TASKS.push(t.clone()) };
+}
+
+pub fn join_all() {
+    unsafe {
+        for t in ALL_TASKS.iter() {
+            t.join();
+        }
+    }
+}

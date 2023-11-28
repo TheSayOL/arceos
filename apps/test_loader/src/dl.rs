@@ -4,7 +4,7 @@
 //!
 //! FIXME: too many raw pointers
 
-use axstd::{println, vec::Vec};
+use axstd::vec::Vec;
 
 use super::config::*;
 use super::mylibc;
@@ -82,7 +82,6 @@ impl ElfData {
 
 /// read elf data, and do dynamic link
 pub fn from_elf(elf_data: &[u8]) -> ElfData {
-    let mut entry = 0;
     let elf = xmas_elf::ElfFile::new(elf_data).unwrap();
     let elf_header = elf.header;
     let magic = elf_header.pt1.magic;
@@ -110,13 +109,9 @@ pub fn from_elf(elf_data: &[u8]) -> ElfData {
                 // rela's entry is 24B = 6 * 4B, and entry[0] is offset, entry[4] is value
                 while rela_addr < rela_end {
                     unsafe {
-                        // println!("rela {:x}", rela_addr);
                         let addr = ret_data.read::<usize>(rela_addr);
                         let value = ret_data.read::<u32>(rela_addr + 4 * 4);
-                        // println!("before v {:x}, a {:x}", *value, *addr);
                         ret_data.write::<usize>(*addr, *value as usize + APP_START_VA);
-                        let value = ret_data.read::<usize>(*addr);
-                        // println!("after v {:x}, a {:x}", *value, *addr);
                     }
                     rela_addr += 24;
                 }
@@ -135,16 +130,19 @@ pub fn from_elf(elf_data: &[u8]) -> ElfData {
                         match elf.get_dyn_string(name_index) {
                             Ok("__libc_start_main") => {
                                 // println!("libc");
-                                ret_data
-                                    .write::<usize>(addr, crate::task::__libc_main_start as usize);
-                                let v = *ret_data.read::<usize>(addr);
-                                // println!("v {:x}, a {:x}", v, addr);
+                                ret_data.write::<usize>(
+                                    addr,
+                                    crate::mylibc::__libc_main_start as usize,
+                                );
                             }
                             Ok("puts") => {
                                 ret_data.write::<usize>(addr, mylibc::puts as usize);
                             }
+                            Ok("sleep") => {
+                                ret_data.write::<usize>(addr, mylibc::sleep as usize);
+                            }
                             Ok(name) => {
-                                // println!("unmatched name = {}", name);
+                                panic!("unknown func name = {}", name);
                             }
                             _ => {}
                         }

@@ -338,3 +338,5 @@ pub mod io {
         pub type AxPollState;
     }
 }
+
+pub use imp::multi_app;

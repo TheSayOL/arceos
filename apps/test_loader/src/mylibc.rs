@@ -3,7 +3,7 @@ use axstd::println;
 
 fn strlen(mut s: *const u8) -> usize {
     let mut len = 0;
-    let s = unsafe {
+    unsafe {
         while *s != 0 {
             len += 1;
             s = s.add(1);
@@ -19,4 +19,15 @@ pub fn puts(s: *const u8) {
         core::str::from_utf8(s).unwrap()
     };
     println!("{}",s);
+}
+
+pub fn __libc_main_start(c_main: fn() -> i32) {
+    println!("__libc_main_start: c_main = 0x{:x}", c_main as usize);
+    let ret = c_main();
+    println!("__libc_main_start: c_main return = {}", ret);
+    // exit(ret);
+}
+
+pub fn sleep() {
+    axstd::thread::yield_now();
 }

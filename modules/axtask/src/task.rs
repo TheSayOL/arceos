@@ -1,4 +1,6 @@
+use alloc::vec::Vec;
 use alloc::{boxed::Box, string::String, sync::Arc};
+use axhal::paging::{MappingFlags, PageSize, PageTable};
 use core::ops::Deref;
 use core::sync::atomic::{AtomicBool, AtomicI32, AtomicU64, AtomicU8, Ordering};
 use core::{alloc::Layout, cell::UnsafeCell, fmt, ptr::NonNull};
@@ -9,7 +11,7 @@ use core::sync::atomic::AtomicUsize;
 #[cfg(feature = "tls")]
 use axhal::tls::TlsArea;
 
-use axhal::arch::TaskContext;
+use axhal::arch::{write_page_table_root, TaskContext};
 use memory_addr::{align_up_4k, VirtAddr};
 
 use crate::{AxRunQueue, AxTask, AxTaskRef, WaitQueue};
@@ -55,6 +57,8 @@ pub struct TaskInner {
 
     #[cfg(feature = "tls")]
     tls: TlsArea,
+
+    pagetable: UnsafeCell<PageTable>,
 }
 
 impl TaskId {
@@ -91,6 +95,16 @@ impl TaskInner {
         self.id
     }
 
+    pub fn set_root_pagetable(&self) {
+        unsafe {
+            write_page_table_root((*(self.pagetable.get())).root_paddr());
+        }
+    }
+
+    pub fn pagetable_ptr_mut(&self) -> *mut PageTable {
+        self.pagetable.get()
+    }
+
     /// Gets the name of the task.
     pub fn name(&self) -> &str {
         self.name.as_str()
@@ -114,6 +128,21 @@ impl TaskInner {
 // private methods
 impl TaskInner {
     fn new_common(id: TaskId, name: String) -> Self {
+        let pt = {
+            let mut pt = axhal::paging::PageTable::try_new().unwrap();
+            for r in axhal::mem::memory_regions() {
+                pt.map_region(
+                    axhal::mem::phys_to_virt(r.paddr),
+                    r.paddr,
+                    r.size,
+                    r.flags.into(),
+                    true,
+                )
+                .unwrap();
+            }
+            UnsafeCell::new(pt)
+        };
+
         Self {
             id,
             name,
@@ -134,6 +163,7 @@ impl TaskInner {
             ctx: UnsafeCell::new(TaskContext::new()),
             #[cfg(feature = "tls")]
             tls: TlsArea::alloc(),
+            pagetable: pt,
         }
     }
 
@@ -157,6 +187,66 @@ impl TaskInner {
         if t.name == "idle" {
             t.is_idle = true;
         }
+        Arc::new(AxTask::new(t))
+    }
+
+    /// Create a new task with the given entry function and stack size.
+    /// entry will be in s11
+    pub(crate) fn new_from_data(
+        entry: usize,
+        name: String,
+        stack_size: usize,
+        datas: Vec<(usize, Vec<u8>)>,
+    ) -> AxTaskRef {
+        let mut t = Self::new_common(TaskId::new(), name);
+        debug!("new task: {}", t.id_name());
+        let kstack = TaskStack::alloc(align_up_4k(stack_size));
+        #[cfg(feature = "tls")]
+        let tls = VirtAddr::from(t.tls.tls_ptr() as usize);
+        #[cfg(not(feature = "tls"))]
+        let tls = VirtAddr::from(0);
+
+        let pt = t.pagetable.get();
+        let flags = MappingFlags::WRITE | MappingFlags::READ | MappingFlags::EXECUTE;
+
+        // for each loadable data, map to pagetable.
+        for (start_va, data) in datas {
+            // total pages needed to be alloced
+            let offset = start_va % 4096;
+            let end_va = start_va + data.len();
+            let start_vpn = start_va / 4096;
+            let end_vpn = (end_va + 4095) / 4096;
+            let num_page = end_vpn - start_vpn;
+            let layout = Layout::from_size_align(4096 * num_page, 4096).unwrap();
+
+            unsafe {
+                // alloc pages 
+                let addr_alloc = alloc::alloc::alloc(layout);
+                // copy data to pages 
+                for (i, d) in data.iter().enumerate() {
+                    *(addr_alloc.add(offset + i)) = *d;
+                }
+                // map pages to pagetable 
+                let paddr = addr_alloc as usize - axconfig::PHYS_VIRT_OFFSET;
+                for i in 0..num_page {
+                    let target = paddr + (i * 4096);
+                    let map_va = start_va + (i * 4096);
+                    (*pt)
+                        .map(map_va.into(), target.into(), PageSize::Size4K, flags)
+                        .unwrap();
+                }
+            }
+        }
+
+        // entry is `entry` and not FnOnce
+        t.entry = None;
+        // set s11 to be entry, just jalr it when this task starts 
+        t.ctx
+            .get_mut()
+            .init_s11(task_entry as usize, kstack.top(), tls, entry);
+
+        t.kstack = Some(kstack);
+
         Arc::new(AxTask::new(t))
     }
 
@@ -386,6 +476,15 @@ extern "C" fn task_entry() -> ! {
     let task = crate::current();
     if let Some(entry) = task.entry {
         unsafe { Box::from_raw(entry)() };
+    } else {
+        // cfg feature
+        unsafe {
+            core::arch::asm!(
+                "
+        jalr s11
+        "
+            )
+        }
     }
     crate::exit(0);
 }

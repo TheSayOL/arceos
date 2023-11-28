@@ -103,6 +103,17 @@ impl TaskContext {
         self.tp = tls_area.as_usize();
     }
 
+    pub fn init_s11(
+        &mut self,
+        entry: usize,
+        kstack_top: VirtAddr,
+        tls_area: VirtAddr,
+        s11: usize,
+    ) {
+        self.init(entry, kstack_top, tls_area);
+        self.s11 = s11;
+    }
+
     /// Switches to another task.
     ///
     /// It first saves the current task's context from CPU to this place, and then
