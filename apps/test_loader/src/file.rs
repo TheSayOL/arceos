@@ -23,8 +23,6 @@ pub fn open_plash() -> Vec<Vec<u8>> {
         use axstd::println;
 
     loop {
-        println!("1");
-
         // get file header and check magic
         let file_header = unsafe { (file_addr as *const Header).as_ref().unwrap() };
         if file_header.magic != "UniKernl".as_bytes() {
