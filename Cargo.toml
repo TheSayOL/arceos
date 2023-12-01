@@ -71,8 +71,7 @@ members = [
     "apps/task/priority",
     "apps/task/tls",
 
-    "apps/loader",
-    "apps/test_loader",
+    "apps/linux_apps",
 ]
 
 [profile.release]

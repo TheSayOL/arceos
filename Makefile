@@ -34,8 +34,7 @@ LOG ?= warn
 V ?=
 
 # App options
-# A ?= apps/helloworld
-A ?= apps/test_loader
+A ?= apps/linux_apps
 APP ?= $(A)
 FEATURES ?=
 APP_FEATURES ?=

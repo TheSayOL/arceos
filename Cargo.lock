@@ -112,15 +112,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "arceos-loader"
-version = "0.1.0"
-dependencies = [
- "axconfig",
- "axstd",
- "riscv",
-]
-
-[[package]]
 name = "arceos-memtest"
 version = "0.1.0"
 dependencies = [
@@ -129,7 +120,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "arceos-musl-loader"
+name = "arceos-musl-app-loader"
 version = "0.1.0"
 dependencies = [
  "axconfig",
