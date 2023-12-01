@@ -158,6 +158,9 @@ disasm:
 run: build justrun
 
 justrun:
+ifeq ($(DL),y)
+	make -C $(A) run
+endif
 	$(call run_qemu)
 
 debug: build

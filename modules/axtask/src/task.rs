@@ -1,5 +1,6 @@
 use alloc::vec::Vec;
 use alloc::{boxed::Box, string::String, sync::Arc};
+use axhal::mem::{phys_to_virt, virt_to_phys};
 use axhal::paging::{MappingFlags, PageSize, PageTable};
 use core::ops::Deref;
 use core::sync::atomic::{AtomicBool, AtomicI32, AtomicU64, AtomicU8, Ordering};
@@ -12,7 +13,7 @@ use core::sync::atomic::AtomicUsize;
 use axhal::tls::TlsArea;
 
 use axhal::arch::{write_page_table_root, TaskContext};
-use memory_addr::{align_up_4k, VirtAddr};
+use memory_addr::{align_up_4k, PhysAddr, VirtAddr, PAGE_SIZE_4K};
 
 use crate::{AxRunQueue, AxTask, AxTaskRef, WaitQueue};
 
@@ -58,7 +59,8 @@ pub struct TaskInner {
     #[cfg(feature = "tls")]
     tls: TlsArea,
 
-    pagetable: UnsafeCell<PageTable>,
+    pagetable: Arc<UnsafeCell<PageTable>>,
+    mem_alloc: Vec<(*mut u8, Layout)>,
 }
 
 impl TaskId {
@@ -93,6 +95,31 @@ impl TaskInner {
     /// Gets the ID of the task.
     pub const fn id(&self) -> TaskId {
         self.id
+    }
+
+    /// alloc enough memory, and return ptr,
+    pub fn alloc(&mut self, start_va: usize, layout: Layout, flags: MappingFlags) -> *mut u8 {
+        // total pages needed to be alloced
+        let start_va = VirtAddr::from(start_va);
+
+        // alloc pages
+        let ptr_alloc = unsafe { alloc::alloc::alloc(layout) };
+        // map pages to pagetable
+        let pa_alloc = virt_to_phys((ptr_alloc as usize).into());
+        let pt = self.pagetable_ptr_mut();
+        unsafe {
+            (*pt)
+                .map_region(
+                    start_va.align_down_4k(),
+                    pa_alloc.into(),
+                    layout.size(),
+                    flags,
+                    true,
+                )
+                .unwrap();
+        }
+        self.mem_alloc.push((ptr_alloc, layout));
+        ptr_alloc
     }
 
     pub fn set_root_pagetable(&self) {
@@ -163,7 +190,8 @@ impl TaskInner {
             ctx: UnsafeCell::new(TaskContext::new()),
             #[cfg(feature = "tls")]
             tls: TlsArea::alloc(),
-            pagetable: pt,
+            pagetable: Arc::new(pt),
+            mem_alloc: Vec::new(),
         }
     }
 
@@ -209,38 +237,22 @@ impl TaskInner {
         let pt = t.pagetable.get();
         let flags = MappingFlags::WRITE | MappingFlags::READ | MappingFlags::EXECUTE;
 
-        // for each loadable data, map to pagetable.
+        // write data to memory
         for (start_va, data) in datas {
-            // total pages needed to be alloced
-            let offset = start_va % 4096;
             let end_va = start_va + data.len();
-            let start_vpn = start_va / 4096;
-            let end_vpn = (end_va + 4095) / 4096;
-            let num_page = end_vpn - start_vpn;
-            let layout = Layout::from_size_align(4096 * num_page, 4096).unwrap();
-
-            unsafe {
-                // alloc pages 
-                let addr_alloc = alloc::alloc::alloc(layout);
-                // copy data to pages 
-                for (i, d) in data.iter().enumerate() {
-                    *(addr_alloc.add(offset + i)) = *d;
-                }
-                // map pages to pagetable 
-                let paddr = addr_alloc as usize - axconfig::PHYS_VIRT_OFFSET;
-                for i in 0..num_page {
-                    let target = paddr + (i * 4096);
-                    let map_va = start_va + (i * 4096);
-                    (*pt)
-                        .map(map_va.into(), target.into(), PageSize::Size4K, flags)
-                        .unwrap();
-                }
+            let num_page = (end_va + PAGE_SIZE_4K - 1) / PAGE_SIZE_4K - start_va / PAGE_SIZE_4K;
+            let layout = Layout::from_size_align(PAGE_SIZE_4K * num_page, PAGE_SIZE_4K).unwrap();
+            let ptr = t.alloc(start_va, layout, flags);
+            let ptr = unsafe { ptr.add(start_va % PAGE_SIZE_4K) };
+            for (i, d) in data.iter().enumerate() {
+                unsafe { *ptr.add(i) = *d };
             }
         }
+        //check
 
         // entry is `entry` and not FnOnce
         t.entry = None;
-        // set s11 to be entry, just jalr it when this task starts 
+        // set s11 to be entry, just jalr it when this task starts
         t.ctx
             .get_mut()
             .init_s11(task_entry as usize, kstack.top(), tls, entry);
@@ -385,6 +397,12 @@ impl fmt::Debug for TaskInner {
 
 impl Drop for TaskInner {
     fn drop(&mut self) {
+        info!("drop tcb");
+        info!("pagetable arc = {}", Arc::strong_count(&self.pagetable));
+        for (ptr, layout) in self.mem_alloc.iter() {
+            info!("drop pa = {:p}" , ptr);
+            unsafe { alloc::alloc::dealloc(*ptr, *layout) };
+        }
         debug!("task drop: {}", self.id_name());
     }
 }

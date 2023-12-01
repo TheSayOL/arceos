@@ -179,5 +179,7 @@ pub fn join_all() {
         for t in ALL_TASKS.iter() {
             t.join();
         }
+        // remove all Arc, or tasks can't be drop
+        ALL_TASKS.clear();
     }
 }

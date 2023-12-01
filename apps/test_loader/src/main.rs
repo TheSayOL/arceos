@@ -30,4 +30,6 @@ fn main() {
         create_task_from_data(data, entry);
     }
     join_all();
+    let mut i = 100000000000000u64;
+    axstd::thread::yield_now();
 }

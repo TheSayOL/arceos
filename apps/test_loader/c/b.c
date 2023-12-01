@@ -1,4 +1,7 @@
 int main(){
-    puts("hello b");
+    for(int i=0;i<10000000;i++){
+    //     if(i % 1000==0)
+    // puts("hello b");
+    }
     return 2;
 }

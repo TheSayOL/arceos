@@ -10,6 +10,7 @@ static IS_BSP: bool = false;
 static CURRENT_TASK_PTR: usize = 0;
 
 /// CURRENT_TASK_PTR is gp, but gp is used by libc
+#[cfg(any(target_arch = "riscv32", target_arch = "riscv64"))]
 static mut CURRENT_TASK_PTR2: usize = 0;
 
 /// Returns the ID of the current CPU.

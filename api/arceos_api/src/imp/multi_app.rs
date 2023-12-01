@@ -5,7 +5,6 @@ pub fn pagetable_map_mib(paddr: usize, len: usize) {
     assert_eq!(len % 2, 0);
     for i in 0..len / 2 {
         let addr = paddr + 2 * i * (1024 * 1024);
-        axlog::info!("addr = {:X}", addr);
         unsafe {
             let pt = axtask::current().pagetable_ptr_mut();
             (*pt)

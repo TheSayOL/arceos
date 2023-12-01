@@ -196,12 +196,15 @@ impl AxRunQueue {
 
 fn gc_entry() {
     loop {
+        info!("gc");
         // Drop all exited tasks and recycle resources.
         let n = EXITED_TASKS.lock().len();
+        info!("exit tasks len {}",n);
         for _ in 0..n {
             // Do not do the slow drops in the critical section.
             let task = EXITED_TASKS.lock().pop_front();
             if let Some(task) = task {
+                info!("task {:?} arc count {}", task.id(), Arc::strong_count(&task));
                 if Arc::strong_count(&task) == 1 {
                     // If I'm the last holder of the task, drop it immediately.
                     drop(task);

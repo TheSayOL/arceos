@@ -7,7 +7,7 @@
 use axstd::vec::Vec;
 
 use super::config::*;
-use super::mylibc;
+use super::mylibc::*;
 
 extern crate xmas_elf;
 
@@ -130,16 +130,10 @@ pub fn from_elf(elf_data: &[u8]) -> ElfData {
                         match elf.get_dyn_string(name_index) {
                             Ok("__libc_start_main") => {
                                 // println!("libc");
-                                ret_data.write::<usize>(
-                                    addr,
-                                    crate::mylibc::__libc_main_start as usize,
-                                );
+                                ret_data.write::<usize>(addr, __libc_main_start as usize);
                             }
                             Ok("puts") => {
-                                ret_data.write::<usize>(addr, mylibc::puts as usize);
-                            }
-                            Ok("sleep") => {
-                                ret_data.write::<usize>(addr, mylibc::sleep as usize);
+                                ret_data.write::<usize>(addr, puts as usize);
                             }
                             Ok(name) => {
                                 panic!("unknown func name = {}", name);

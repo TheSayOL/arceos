@@ -1,7 +1,9 @@
+use core::ffi::c_void;
+
 #[cfg(feature = "axstd")]
 use axstd::println;
 
-fn strlen(mut s: *const u8) -> usize {
+pub fn strlen(mut s: *const u8) -> usize {
     let mut len = 0;
     unsafe {
         while *s != 0 {
@@ -28,6 +30,8 @@ pub fn __libc_main_start(c_main: fn() -> i32) {
     // exit(ret);
 }
 
-pub fn sleep() {
-    axstd::thread::yield_now();
+
+pub fn malloc(size: usize) -> *mut c_void {
+
+    0 as *mut _
 }
